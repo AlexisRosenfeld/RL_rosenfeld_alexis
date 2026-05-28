@@ -1,27 +1,27 @@
 
-#This code was made by Alexis Rosenfeld for the eperiment conclude in the reinforcemnt leranign course
-#given by prof Dimitrakakis at the neuhcatel university
+# This code was made by Alexis Rosenfeld for the experiment conducted in the
+# reinforcement learning course
+# given by prof Dimitrakakis at the Neuchâtel university
 
-#For reading simplification the code aim to reproduce report's structures
-#It has indeed the folowing strucutre : 
-#Utility 
+# For reading simplification the code aims to reproduce the report's structure
+# It has indeed the following structure :
+# Utility
 
-#Some part was factorized thank to openAI codex but is flagged as 
+# Some parts were factorized thanks to OpenAI codex but are flagged as AS
 
-#There the different library i'm using : sqlite3 is used for my 
+# Here are the different libraries I’m using : sqlite3 is used for my data
 import sqlite3
 import math
 import random
 import time
 import matplotlib.pyplot as plt
 
-
+# These values are only used for the display of the layout
 EPISODES = 20000
 STEP = 5.0
 DB_PATH = "data.db"
 
 
-#This value are only used for the dispaly of the layout
 FINGER_COLORS = {
     1: "red",
     2: "orange",
@@ -31,7 +31,7 @@ FINGER_COLORS = {
 }
 
 
-#This is the 
+
 FINGER_ERGO_FACTOR = {
     1: 0.5,
     2: 1.0,
@@ -42,7 +42,7 @@ FINGER_ERGO_FACTOR = {
 
 
 
-#I reported the percentage value form wiwkipeda 
+# I reported the percentage value from Wikipedia
 LETTER_FREQUENCY = {
     "A": 7.636, "B": 0.901, "C": 3.260, "D": 3.669,
     "E": 14.715, "F": 1.066, "G": 0.866, "H": 0.737,
@@ -105,8 +105,7 @@ def load_data():
     }
 
     return keys, fingers
-
-# I apply a correction In my dataset 
+# I applied a correction in my dataset
 def fix_dataset_finger_assignment(keys):
 
     corrections = {
@@ -123,12 +122,10 @@ def fix_dataset_finger_assignment(keys):
 
 
 #The eulideand disatnce that will be used in the utility fucniton
-
 def dist(a, b):
     return math.sqrt((a["x"] - b["x"])**2 + (a["y"] - b["y"])**2)
 
-
-#this is the basic cost fucntio whrer i only took the euliden diantac
+# This is the basic cost function where I only took the Euclidean distance
 
 def naive_cost(keys, fingers):
 
@@ -173,7 +170,7 @@ def ergonomic_cost(keys, fingers):
 
 
 
-#tis two 
+
 def overlap(k1, k2):
 
     return dist(k1, k2) < ( k1["radius"] + k2["radius"] )
@@ -241,8 +238,8 @@ def switch_position_and_reference(keys):
     return new, "SWITCH"
 
 
-#the different model I run in the experiment . This factorization of the model meanign the 
-#creation of a enviroemnt setting 
+# The different models I ran in the experiment. This factorization of the model meaning the
+# creation of an environment setting
 def run_model(initial_keys, fingers, cost_function, switch_function):
 
     keys = copy_keys(initial_keys)
@@ -295,7 +292,7 @@ def run_model(initial_keys, fingers, cost_function, switch_function):
 
 
 
-#Those values aim to 
+
 keys, fingers = load_data()
 keys = fix_dataset_finger_assignment(keys)
 initial_keys = copy_keys(keys)
@@ -324,7 +321,7 @@ advanced_keys, advanced_switch_history, advanced_gain_history = run_model(
 )
 
 
-#keep track of 
+ 
 execution_time = round(time.time() - start_time, 2)
 
 
@@ -374,7 +371,6 @@ plt.show()
 
 #This is the function used to plot the evolution of display keyboard. The factorisation of the fucntion meaning 
 #it's expression as a funciton was made useing codex LLM . The idea reamin from Alexis Rosenfeld
-
 def draw_layout(before_keys, after_keys, title):
     fig, axes = plt.subplots(1, 2, figsize=(14, 7))
     layouts = [
