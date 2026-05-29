@@ -128,45 +128,43 @@ def dist(a, b):
 # This is the basic cost function where I only took the Euclidean distance
 
 def naive_cost(keys, fingers):
-
-    cost = 0
-
-    for key, data in keys.items():
-
-        finger = fingers[data["finger_id"]]
-
-        cost += dist(data, finger)
-
-    return cost
-
-
-def ergonomic_cost(keys, fingers):
-    cost = 0
-    count = {}
-    for data in keys.values():
-        finger = data["finger_id"]
-        count[finger] = count.get(finger, 0) + 1
+    cost = 0.0
 
     for key, data in keys.items():
         finger_id = data["finger_id"]
         finger = fingers[finger_id]
         distance_cost = dist(data, finger)
-        ergonomic_factor = FINGER_ERGO_FACTOR[finger_id]
-        load_factor = count[finger_id]
-        freq = LETTER_FREQUENCY.get(
-            key.upper(),
-            AVERAGE_LETTER_FREQUENCY
-        )
-        usage_factor = freq / AVERAGE_LETTER_FREQUENCY
-
-        cost += (
-            distance_cost
-            * ergonomic_factor
-            * load_factor
-            * usage_factor
-        )
+        #naiv cost 
+        cost += distance_cost
 
     return cost
+
+
+def ergonomic_cost(keys, fingers):
+    cost = 0.0
+    key_count_by_finger = {}
+
+    for data in keys.values():
+        finger_id = data["finger_id"]
+        key_count_by_finger[finger_id] = key_count_by_finger.get(finger_id, 0) + 1
+
+    for key, data in keys.items():
+        finger_id = data["finger_id"]
+        finger = fingers[finger_id]
+
+        distance_cost = dist(data, finger)
+        ergonomic_factor = FINGER_ERGO_FACTOR[finger_id]
+        load_factor = key_count_by_finger[finger_id]
+
+        letter = key.upper()
+        letter_frequency = LETTER_FREQUENCY.get(letter, AVERAGE_LETTER_FREQUENCY)
+        usage_factor = letter_frequency / AVERAGE_LETTER_FREQUENCY
+
+        cost += distance_cost * ergonomic_factor * load_factor * usage_factor
+
+    return cost
+
+
 
 
 
@@ -206,11 +204,14 @@ def move_key(keys):
 
 def switch_reference_only(keys):
     new = copy_keys(keys)
+    #We choose the key randomly
     k1, k2 = random.sample(list(new.keys()), 2)
+    #Only the refernce finger is permuted
     new[k1]["finger_id"], new[k2]["finger_id"] = (
         new[k2]["finger_id"],
         new[k1]["finger_id"]
     )
+    #The "SWITCH" return is only for monitoring purpose
     return new, "SWITCH"
 
 
@@ -219,7 +220,7 @@ def switch_position_and_reference(keys):
     new = copy_keys(keys)
 
     k1, k2 = random.sample(list(new.keys()), 2)
-
+    #Now the "x" and "y" position are also permuted
     new[k1]["x"], new[k2]["x"] = (
         new[k2]["x"],
         new[k1]["x"]
@@ -234,47 +235,33 @@ def switch_position_and_reference(keys):
         new[k2]["finger_id"],
         new[k1]["finger_id"]
     )
-
+    #The "SWITCH" return is only for monitoring purpose
     return new, "SWITCH"
 
 
 # The different models I ran in the experiment. This factorization of the model meaning the
 # creation of an environment setting
 def run_model(initial_keys, fingers, cost_function, switch_function):
-
     keys = copy_keys(initial_keys)
-
     switch_history = []
     gain_history = []
-
     switch_count = 0
-
     initial_cost = ergonomic_cost(initial_keys, fingers)
-
     for _ in range(EPISODES):
-
         old_cost = cost_function(keys, fingers)
-
         if random.random() < 0.5:
             new_keys, action = move_key(keys)
         else:
-            new_keys, action = switch_function(keys)
-        
-        #This aprt of the code was made to keep prevent aciotn 
+            #the actual switch function depend on our environemnt setting
+            new_keys, action = switch_function(keys)   
         if has_collision(new_keys):
-
             switch_history.append(switch_count)
-
             gain_history.append(
                 initial_cost - ergonomic_cost(keys, fingers)
             )
-
             continue
-
         new_cost = cost_function(new_keys, fingers)
-
         reward = old_cost - new_cost
-
         if reward > 0:
 
             if action == "SWITCH":
@@ -287,7 +274,6 @@ def run_model(initial_keys, fingers, cost_function, switch_function):
         gain_history.append(
             initial_cost - ergonomic_cost(keys, fingers)
         )
-
     return keys, switch_history, gain_history
 
 
